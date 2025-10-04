@@ -1,58 +1,34 @@
--- Debug Corrigido: Mapeia GUI/Flag/Input sem lag
--- Rode no executor, aguarde bandeira. Prints só no achado!
+-- Debug Manual Zero Lag: Aperta F1 pra printar estrutura (só uma vez)
+-- Sem loop, sem freeze!
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-print("[Debug Corrigido] Iniciado! Checando a cada 2s...")
+print("[Debug Manual] Carregado! Aperta F1 no jogo pra printar GUIs/Flag/Hub (uma vez só).")
 
-local function printHierarchyLimited(parent, indent, maxDepth)
-    indent = indent or ""
-        maxDepth = maxDepth or 3
-            if maxDepth <= 0 then return end
-                for _, child in pairs(parent:GetChildren()) do
-                        local path = child:GetFullName():gsub("PlayerGui.", "")
-                                local extra = ""
-                                        if child:IsA("ImageLabel") then
-                                                    extra = " | Image: " .. (child.Image or "nil")
-                                                            elseif child:IsA("TextBox") then
-                                                                        extra = " | Placeholder: '" .. (child.PlaceholderText or "nil") .. "' | Pos: " .. tostring(child.Position)
-                                                                                end
-                                                                                        print(indent .. child.Name .. " (" .. child.ClassName .. ")" .. extra .. " | Path: PlayerGui." .. path)
-                                                                                                if #child:GetChildren() > 0 and maxDepth > 1 then
-                                                                                                            printHierarchyLimited(child, indent .. "  ", maxDepth - 1)
-                                                                                                                    end
-                                                                                                                        end
-                                                                                                                        end
+local printed = false
 
-                                                                                                                        spawn(function()
-                                                                                                                            while true do
-                                                                                                                                    local foundFlag = false
-                                                                                                                                            for _, gui in pairs(playerGui:GetChildren()) do
-                                                                                                                                                        if gui:IsA("ScreenGui") then
-                                                                                                                                                                        for _, child in pairs(gui:GetDescendants()) do
-                                                                                                                                                                                            if child:IsA("ImageLabel") and child.Image:match("rbxassetid://%d+") then
-                                                                                                                                                                                                                    print("\n[Debug] *** BANDEIRA ENCONTRADA! ***")
-                                                                                                                                                                                                                                            print("Flag Image: " .. child.Name .. " | ID: " .. child.Image)
-                                                                                                                                                                                                                                                                    print("Em GUI: " .. gui.Name .. " | Full Path: PlayerGui." .. child:GetFullName():gsub("PlayerGui.", ""))
-                                                                                                                                                                                                                                                                                            printHierarchyLimited(playerGui, "", 2)  -- Limitado a 2 níveis pra não floodar
-                                                                                                                                                                                                                                                                                                                    foundFlag = true
-                                                                                                                                                                                                                                                                                                                                        end
-                                                                                                                                                                                                                                                                                                                                                            if child:IsA("TextBox") and child.Visible and child.Position.Y.Scale > 0.7 then
-                                                                                                                                                                                                                                                                                                                                                                                    print("\n[Debug] *** HUB INPUT ENCONTRADO! ***")
-                                                                                                                                                                                                                                                                                                                                                                                                            print("TextBox: " .. child.Name .. " | Placeholder: '" .. (child.PlaceholderText or "") .. "' | Pos: " .. tostring(child.Position))
-                                                                                                                                                                                                                                                                                                                                                                                                                                    print("Em GUI: " .. child.Parent.Name .. " | Full Path: PlayerGui." .. child:GetFullName():gsub("PlayerGui.", ""))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                        end
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                        end
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    end
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            end
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    if foundFlag then
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                print("[Debug] Detecção feita! Pare o script se quiser.")
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        end
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                wait(2)  -- Checa devagar, sem lag
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    end
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    end)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode.F1 and not printed then
+                printed = true
+                        print("\n[Debug] *** PRINT MANUAL ATIVADO! *** (Estrutura da PlayerGui)")
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    print("[Debug] Loop rodando. Entra num round com bandeira e checa console!")
+                                for _, gui in pairs(playerGui:GetChildren()) do
+                                            if gui:IsA("ScreenGui") and gui.Enabled then
+                                                            print("\n--- GUI: " .. gui.Name .. " ---")
+                                                                            for _, child in pairs(gui:GetDescendants()) do
+                                                                                                if child:IsA("ImageLabel") and child.Image:match("rbxassetid://%d+") then
+                                                                                                                        print("FLAG ENCONTRADA: " .. child.Name .. " (ImageLabel) | ID: " .. child.Image .. " | Parent: " .. child.Parent.Name)
+                                                                                                                                            end
+                                                                                                                                                                if child:IsA("TextBox") and child.Visible and child.AbsolutePosition.Y > workspace.CurrentCamera.ViewportSize.Y * 0.7 then
+                                                                                                                                                                                        print("HUB INPUT ENCONTRADO: " .. child.Name .. " (TextBox) | Placeholder: '" .. (child.PlaceholderText or "nenhum") .. "' | Pos: " .. tostring(child.Position) .. " | Parent: " .. child.Parent.Name)
+                                                                                                                                                                                                            end
+                                                                                                                                                                                                                            end
+                                                                                                                                                                                                                                        end
+                                                                                                                                                                                                                                                end
+                                                                                                                                                                                                                                                        print("[Debug] Print feito! Copie os ENCONTRADO acima e pare o script se quiser.")
+                                                                                                                                                                                                                                                            end
+                                                                                                                                                                                                                                                            end)
