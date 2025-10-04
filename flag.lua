@@ -1,8 +1,7 @@
--- Auto-Guess Atualizado: Sem chat, toggles via GUI discreta (mobile-friendly)
--- Dict full EN, busca em GameUI. Clique botões pra toggle/debug.
+-- Auto-Guess Definitivo v2: Busca profunda em todas GUIs, GUI toggle mobile-safe
+-- Clique Debug pra printar hierarchy completa no console (F9). Sem chat.
 
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 
@@ -13,10 +12,9 @@ local playerGui = player:WaitForChild("PlayerGui")
 local enabled = true
 local errorChance = 0.2
 local farmMode = false
-local targetGui = "GameUI"
 local lastFlagId = nil
 
--- Dict FULL EN (completo como antes)
+-- Dict FULL EN (completo)
 local flagDictionary = {
     ["rbxassetid://12993164076"] = "Afghanistan",
     ["rbxassetid://6924391098"] = "Aland Islands",
@@ -267,129 +265,141 @@ local flagDictionary = {
     ["rbxassetid://6924369153"] = "Canada"
 }
 
--- GUI Logs + Toggles (discreta, touch-friendly)
+-- GUI Toggle (mobile-safe: ResetOnSpawn = false, posição absoluta pequena)
 local toggleGui = Instance.new("ScreenGui")
 toggleGui.Name = "AutoGuessToggle"
+toggleGui.ResetOnSpawn = false
 toggleGui.Parent = playerGui
 local toggleFrame = Instance.new("Frame")
-toggleFrame.Size = UDim2.new(0, 150, 0, 120)
-toggleFrame.Position = UDim2.new(1, -160, 0, 10)  -- Canto direito superior, mobile-friendly
+toggleFrame.Size = UDim2.new(0, 120, 0, 100)
+toggleFrame.Position = UDim2.new(1, -130, 0, 20)  -- Canto direito, pequeno pro mobile
 toggleFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-toggleFrame.BackgroundTransparency = 0.5
+toggleFrame.BackgroundTransparency = 0.4
+toggleFrame.BorderSizePixel = 0
 toggleFrame.Parent = toggleGui
+
 local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, 0, 0, 20)
+titleLabel.Size = UDim2.new(1, 0, 0, 15)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "AutoGuess"
+titleLabel.Text = "Auto"
 titleLabel.TextColor3 = Color3.new(1, 1, 1)
 titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.Parent = toggleFrame
 
 -- Botão Toggle Auto
 local toggleBtn = Instance.new("TextButton")
-toggleBtn.Size = UDim2.new(1, 0, 0, 20)
-toggleBtn.Position = UDim2.new(0, 0, 0, 20)
+toggleBtn.Size = UDim2.new(1, 0, 0, 15)
+toggleBtn.Position = UDim2.new(0, 0, 0, 15)
 toggleBtn.BackgroundTransparency = 1
-toggleBtn.Text = "Auto: ON"
+toggleBtn.Text = "ON"
 toggleBtn.TextColor3 = Color3.new(0, 1, 0)
 toggleBtn.TextScaled = true
+toggleBtn.Font = Enum.Font.SourceSans
 toggleBtn.Parent = toggleFrame
 toggleBtn.MouseButton1Click:Connect(function()
     enabled = not enabled
-    toggleBtn.Text = "Auto: " .. (enabled and "ON" or "OFF")
+    toggleBtn.Text = enabled and "ON" or "OFF"
     toggleBtn.TextColor3 = enabled and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
 end)
 
 -- Botão Farm
 local farmBtn = Instance.new("TextButton")
-farmBtn.Size = UDim2.new(1, 0, 0, 20)
-farmBtn.Position = UDim2.new(0, 0, 0, 40)
+farmBtn.Size = UDim2.new(1, 0, 0, 15)
+farmBtn.Position = UDim2.new(0, 0, 0, 30)
 farmBtn.BackgroundTransparency = 1
-farmBtn.Text = "Farm: OFF"
+farmBtn.Text = "Farm OFF"
 farmBtn.TextColor3 = Color3.new(1, 0, 0)
 farmBtn.TextScaled = true
+farmBtn.Font = Enum.Font.SourceSans
 farmBtn.Parent = toggleFrame
 farmBtn.MouseButton1Click:Connect(function()
     farmMode = not farmMode
-    farmBtn.Text = "Farm: " .. (farmMode and "ON" or "OFF")
+    farmBtn.Text = "Farm " .. (farmMode and "ON" or "OFF")
     farmBtn.TextColor3 = farmMode and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
 end)
 
--- Botão Error 0%
+-- Botão Error
 local errorBtn = Instance.new("TextButton")
-errorBtn.Size = UDim2.new(1, 0, 0, 20)
-errorBtn.Position = UDim2.new(0, 0, 0, 60)
+errorBtn.Size = UDim2.new(1, 0, 0, 15)
+errorBtn.Position = UDim2.new(0, 0, 0, 45)
 errorBtn.BackgroundTransparency = 1
-errorBtn.Text = "Erro: 20%"
+errorBtn.Text = "Erro 20%"
 errorBtn.TextColor3 = Color3.new(1, 1, 0)
 errorBtn.TextScaled = true
+errorBtn.Font = Enum.Font.SourceSans
 errorBtn.Parent = toggleFrame
 errorBtn.MouseButton1Click:Connect(function()
     errorChance = errorChance == 0.2 and 0 or 0.2
-    errorBtn.Text = "Erro: " .. (errorChance * 100) .. "%"
+    errorBtn.Text = "Erro " .. (errorChance * 100) .. "%"
 end)
 
--- Botão Debug (printa hierarchy no console)
+-- Botão Debug (printa hierarchy completa)
 local debugBtn = Instance.new("TextButton")
-debugBtn.Size = UDim2.new(1, 0, 0, 20)
-debugBtn.Position = UDim2.new(0, 0, 0, 80)
+debugBtn.Size = UDim2.new(1, 0, 0, 15)
+debugBtn.Position = UDim2.new(0, 0, 0, 60)
 debugBtn.BackgroundTransparency = 1
 debugBtn.Text = "Debug"
-debugBtn.TextColor3 = Color3.new(1, 1, 1)
+debugBtn.TextColor3 = Color3.new(1, 0.5, 0)
 debugBtn.TextScaled = true
+debugBtn.Font = Enum.Font.SourceSans
 debugBtn.Parent = toggleFrame
 debugBtn.MouseButton1Click:Connect(function()
     debugHierarchy()
 end)
 
--- Botão Clear Logs (se quiser adicionar logs visuais)
+-- Botão Clear
 local clearBtn = Instance.new("TextButton")
-clearBtn.Size = UDim2.new(1, 0, 0, 20)
-clearBtn.Position = UDim2.new(0, 0, 0, 100)
+clearBtn.Size = UDim2.new(1, 0, 0, 15)
+clearBtn.Position = UDim2.new(0, 0, 0, 75)
 clearBtn.BackgroundTransparency = 1
 clearBtn.Text = "Clear"
-clearBtn.TextColor3 = Color3.new(1, 1, 1)
+clearBtn.TextColor3 = Color3.new(0.5, 0.5, 0.5)
 clearBtn.TextScaled = true
+clearBtn.Font = Enum.Font.SourceSans
 clearBtn.Parent = toggleFrame
 clearBtn.MouseButton1Click:Connect(function()
-    -- Adicione logs aqui se quiser, por agora só limpa console se possível
-    print("[Auto] Logs limpos no console.")
+    for _, child in pairs(playerGui:GetChildren()) do
+        if child.Name == "AutoGuessLogs" then child:Destroy() end
+    end
 end)
 
--- Função debug hierarchy (printa no console)
+-- Função debug (printa hierarchy em TODAS GUIs visíveis)
 local function debugHierarchy()
-    local gameGui = playerGui:FindFirstChild(targetGui)
-    if not gameGui then
-        print("[Debug] GameUI não encontrada! Tente outro targetGui.")
-        return
-    end
-    print("\n[Debug] Hierarchy de GameUI (ImageLabels e TextBoxes visíveis):")
-    for _, child in pairs(gameGui:GetDescendants()) do
-        local extra = ""
-        if child:IsA("ImageLabel") and child.Image then
-            extra = " | IMAGE ID: " .. child.Image
-        elseif child:IsA("TextBox") and child.Visible then
-            extra = " | PLACEHOLDER: '" .. (child.PlaceholderText or "nenhum") .. "' | POS: " .. tostring(child.Position)
+    print("\n[Debug] Hierarchy completa (ImageLabels e TextBoxes visíveis):")
+    for _, gui in pairs(playerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") and gui.Enabled then
+            print("\n--- GUI: " .. gui.Name .. " ---")
+            for _, child in pairs(gui:GetDescendants()) do
+                local extra = ""
+                if child:IsA("ImageLabel") and child.Image and child.Image:match("rbxassetid://%d+") then
+                    extra = " | ID: " .. child.Image
+                elseif child:IsA("TextBox") and child.Visible then
+                    extra = " | Placeholder: '" .. (child.PlaceholderText or "nenhum") .. "' | Pos: " .. tostring(child.Position)
+                end
+                if extra ~= "" then
+                    print("  " .. child:GetFullName():gsub("PlayerGui.", "") .. " (" .. child.ClassName .. ")" .. extra)
+                end
+            end
         end
-        if extra ~= "" then
-            print("  " .. child:GetFullName():gsub("PlayerGui.", "") .. " (" .. child.ClassName .. ")" .. extra)
-        end
     end
-    print("[Debug] Fim hierarchy. Copie e manda pro Grok!")
+    print("[Debug] Fim! Copie e manda o output.")
 end
 
--- Guess core (igual antes)
+-- Guess core (busca em todas GUIs)
 local function autoGuess()
     if not enabled then return end
 
-    local gameGui = playerGui:FindFirstChild(targetGui)
-    if not gameGui then return end
-
     local flagImage = nil
-    for _, child in pairs(gameGui:GetDescendants()) do
-        if child:IsA("ImageLabel") and child.Image:match("rbxassetid://%d+") and flagDictionary[child.Image] then
-            flagImage = child
-            break
+    for _, gui in pairs(playerGui:GetChildren()) do
+        if gui:IsA("ScreenGui") and gui.Enabled then
+            for _, child in pairs(gui:GetDescendants()) do
+                if child:IsA("ImageLabel") and child.Image:match("rbxassetid://%d+") and flagDictionary[child.Image] then
+                    flagImage = child
+                    break
+                end
+            end
+            if flagImage then break end
         end
     end
     if not flagImage or flagImage.Image == lastFlagId then return end
@@ -413,10 +423,15 @@ local function autoGuess()
         end
 
         local textbox = nil
-        for _, child in pairs(gameGui:GetDescendants()) do
-            if child:IsA("TextBox") and child.Visible and child.Position.Y.Scale > 0.7 then
-                textbox = child
-                break
+        for _, gui in pairs(playerGui:GetChildren()) do
+            if gui:IsA("ScreenGui") and gui.Enabled then
+                for _, child in pairs(gui:GetDescendants()) do
+                    if child:IsA("TextBox") and child.Visible and child.Position.Y.Scale > 0.7 then
+                        textbox = child
+                        break
+                    end
+                end
+                if textbox then break end
             end
         end
 
@@ -428,8 +443,12 @@ local function autoGuess()
             wait(0.05)
             VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Return, false, game)
             textbox.Text = ""
-            print("[Auto] Submetido: " .. countryName .. " (ID: " .. textureId:sub(13) .. ")")  -- Log no console, invisível
+            print("[Auto] Submetido: " .. countryName .. " | Flag ID: " .. textureId:sub(13))
+        else
+            print("[Auto] TextBox não achado!")
         end
+    else
+        print("[Auto] Flag desconhecida: " .. textureId:sub(13))
     end
 end
 
@@ -438,4 +457,4 @@ RunService.Heartbeat:Connect(function()
     autoGuess()
 end)
 
-print("[Auto] GUI toggles no canto direito. Clique Debug com flag/hub na tela e me manda o console!")
+print("[Auto] GUI no canto direito. Clique Debug e me manda o console (F9)!")
