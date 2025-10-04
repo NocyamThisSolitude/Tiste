@@ -1,5 +1,5 @@
--- Auto-Guess Definitivo v2: Busca profunda em todas GUIs, GUI toggle mobile-safe
--- Clique Debug pra printar hierarchy completa no console (F9). Sem chat.
+-- Auto-Guess FINAL Hard-Coded: Paths do Dex (FlagImage e InputBox)
+-- Dict full EN, mobile-safe, sem lag. GUI toggle no canto direito.
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -14,7 +14,7 @@ local errorChance = 0.2
 local farmMode = false
 local lastFlagId = nil
 
--- Dict FULL EN (completo)
+-- Dict FULL EN (IDs -> Nomes, baseado em Roblox assets)
 local flagDictionary = {
     ["rbxassetid://12993164076"] = "Afghanistan",
     ["rbxassetid://6924391098"] = "Aland Islands",
@@ -23,7 +23,7 @@ local flagDictionary = {
     ["rbxassetid://9583261608"] = "American Samoa",
     ["rbxassetid://11793653294"] = "Andorra",
     ["rbxassetid://12145056039"] = "Angola",
-    ["rbxassetid://11327517333"] = "Anguila",
+    ["rbxassetid://11327517333"] = "Anguilla",
     ["rbxassetid://754202418"] = "Antarctica",
     ["rbxassetid://11797928102"] = "Antigua and Barbuda",
     ["rbxassetid://6377160031"] = "Argentina",
@@ -265,45 +265,48 @@ local flagDictionary = {
     ["rbxassetid://6924369153"] = "Canada"
 }
 
--- GUI Toggle (mobile-safe: ResetOnSpawn = false, posição absoluta pequena)
+-- Paths hard-coded do Dex
+local gameUI = playerGui:WaitForChild("GameUI")
+local referencedFrame = gameUI:WaitForChild("REFERENCED__GameUIFrame")
+local topFlag = referencedFrame:WaitForChild("TopFlag")
+local flagImage = topFlag:WaitForChild("FlagImage")
+local inputFrame = referencedFrame:WaitForChild("Input")
+local inputBox = inputFrame:WaitForChild("InputBox")
+
+-- GUI Toggle (discreta, mobile-safe)
 local toggleGui = Instance.new("ScreenGui")
-toggleGui.Name = "AutoGuessToggle"
+toggleGui.Name = "AutoToggle"
 toggleGui.ResetOnSpawn = false
 toggleGui.Parent = playerGui
 local toggleFrame = Instance.new("Frame")
-toggleFrame.Size = UDim2.new(0, 120, 0, 100)
-toggleFrame.Position = UDim2.new(1, -130, 0, 20)  -- Canto direito, pequeno pro mobile
+toggleFrame.Size = UDim2.new(0, 100, 0, 80)
+toggleFrame.Position = UDim2.new(1, -110, 0, 20)
 toggleFrame.BackgroundColor3 = Color3.new(0, 0, 0)
 toggleFrame.BackgroundTransparency = 0.4
-toggleFrame.BorderSizePixel = 0
 toggleFrame.Parent = toggleGui
 
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Size = UDim2.new(1, 0, 0, 15)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "Auto"
-titleLabel.TextColor3 = Color3.new(1, 1, 1)
-titleLabel.TextScaled = true
-titleLabel.Font = Enum.Font.SourceSansBold
-titleLabel.Parent = toggleFrame
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 15)
+title.BackgroundTransparency = 1
+title.Text = "Auto"
+title.TextColor3 = Color3.new(1, 1, 1)
+title.TextScaled = true
+title.Parent = toggleFrame
 
--- Botão Toggle Auto
-local toggleBtn = Instance.new("TextButton")
-toggleBtn.Size = UDim2.new(1, 0, 0, 15)
-toggleBtn.Position = UDim2.new(0, 0, 0, 15)
-toggleBtn.BackgroundTransparency = 1
-toggleBtn.Text = "ON"
-toggleBtn.TextColor3 = Color3.new(0, 1, 0)
-toggleBtn.TextScaled = true
-toggleBtn.Font = Enum.Font.SourceSans
-toggleBtn.Parent = toggleFrame
-toggleBtn.MouseButton1Click:Connect(function()
+local autoBtn = Instance.new("TextButton")
+autoBtn.Size = UDim2.new(1, 0, 0, 15)
+autoBtn.Position = UDim2.new(0, 0, 0, 15)
+autoBtn.BackgroundTransparency = 1
+autoBtn.Text = "ON"
+autoBtn.TextColor3 = Color3.new(0, 1, 0)
+autoBtn.TextScaled = true
+autoBtn.Parent = toggleFrame
+autoBtn.MouseButton1Click:Connect(function()
     enabled = not enabled
-    toggleBtn.Text = enabled and "ON" or "OFF"
-    toggleBtn.TextColor3 = enabled and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
+    autoBtn.Text = enabled and "ON" or "OFF"
+    autoBtn.TextColor3 = enabled and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
 end)
 
--- Botão Farm
 local farmBtn = Instance.new("TextButton")
 farmBtn.Size = UDim2.new(1, 0, 0, 15)
 farmBtn.Position = UDim2.new(0, 0, 0, 30)
@@ -311,7 +314,6 @@ farmBtn.BackgroundTransparency = 1
 farmBtn.Text = "Farm OFF"
 farmBtn.TextColor3 = Color3.new(1, 0, 0)
 farmBtn.TextScaled = true
-farmBtn.Font = Enum.Font.SourceSans
 farmBtn.Parent = toggleFrame
 farmBtn.MouseButton1Click:Connect(function()
     farmMode = not farmMode
@@ -319,7 +321,6 @@ farmBtn.MouseButton1Click:Connect(function()
     farmBtn.TextColor3 = farmMode and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
 end)
 
--- Botão Error
 local errorBtn = Instance.new("TextButton")
 errorBtn.Size = UDim2.new(1, 0, 0, 15)
 errorBtn.Position = UDim2.new(0, 0, 0, 45)
@@ -327,14 +328,12 @@ errorBtn.BackgroundTransparency = 1
 errorBtn.Text = "Erro 20%"
 errorBtn.TextColor3 = Color3.new(1, 1, 0)
 errorBtn.TextScaled = true
-errorBtn.Font = Enum.Font.SourceSans
 errorBtn.Parent = toggleFrame
 errorBtn.MouseButton1Click:Connect(function()
     errorChance = errorChance == 0.2 and 0 or 0.2
     errorBtn.Text = "Erro " .. (errorChance * 100) .. "%"
 end)
 
--- Botão Debug (printa hierarchy completa)
 local debugBtn = Instance.new("TextButton")
 debugBtn.Size = UDim2.new(1, 0, 0, 15)
 debugBtn.Position = UDim2.new(0, 0, 0, 60)
@@ -342,67 +341,17 @@ debugBtn.BackgroundTransparency = 1
 debugBtn.Text = "Debug"
 debugBtn.TextColor3 = Color3.new(1, 0.5, 0)
 debugBtn.TextScaled = true
-debugBtn.Font = Enum.Font.SourceSans
 debugBtn.Parent = toggleFrame
 debugBtn.MouseButton1Click:Connect(function()
-    debugHierarchy()
+    print("\n[Debug] Paths atuais: FlagImage.Image = " .. flagImage.Image)
+    print("InputBox Placeholder = '" .. (inputBox.PlaceholderText or "nil") .. "' | Visible = " .. tostring(inputBox.Visible))
 end)
 
--- Botão Clear
-local clearBtn = Instance.new("TextButton")
-clearBtn.Size = UDim2.new(1, 0, 0, 15)
-clearBtn.Position = UDim2.new(0, 0, 0, 75)
-clearBtn.BackgroundTransparency = 1
-clearBtn.Text = "Clear"
-clearBtn.TextColor3 = Color3.new(0.5, 0.5, 0.5)
-clearBtn.TextScaled = true
-clearBtn.Font = Enum.Font.SourceSans
-clearBtn.Parent = toggleFrame
-clearBtn.MouseButton1Click:Connect(function()
-    for _, child in pairs(playerGui:GetChildren()) do
-        if child.Name == "AutoGuessLogs" then child:Destroy() end
-    end
-end)
-
--- Função debug (printa hierarchy em TODAS GUIs visíveis)
-local function debugHierarchy()
-    print("\n[Debug] Hierarchy completa (ImageLabels e TextBoxes visíveis):")
-    for _, gui in pairs(playerGui:GetChildren()) do
-        if gui:IsA("ScreenGui") and gui.Enabled then
-            print("\n--- GUI: " .. gui.Name .. " ---")
-            for _, child in pairs(gui:GetDescendants()) do
-                local extra = ""
-                if child:IsA("ImageLabel") and child.Image and child.Image:match("rbxassetid://%d+") then
-                    extra = " | ID: " .. child.Image
-                elseif child:IsA("TextBox") and child.Visible then
-                    extra = " | Placeholder: '" .. (child.PlaceholderText or "nenhum") .. "' | Pos: " .. tostring(child.Position)
-                end
-                if extra ~= "" then
-                    print("  " .. child:GetFullName():gsub("PlayerGui.", "") .. " (" .. child.ClassName .. ")" .. extra)
-                end
-            end
-        end
-    end
-    print("[Debug] Fim! Copie e manda o output.")
-end
-
--- Guess core (busca em todas GUIs)
+-- Guess core
 local function autoGuess()
     if not enabled then return end
 
-    local flagImage = nil
-    for _, gui in pairs(playerGui:GetChildren()) do
-        if gui:IsA("ScreenGui") and gui.Enabled then
-            for _, child in pairs(gui:GetDescendants()) do
-                if child:IsA("ImageLabel") and child.Image:match("rbxassetid://%d+") and flagDictionary[child.Image] then
-                    flagImage = child
-                    break
-                end
-            end
-            if flagImage then break end
-        end
-    end
-    if not flagImage or flagImage.Image == lastFlagId then return end
+    if flagImage.Image == lastFlagId then return end
     lastFlagId = flagImage.Image
 
     local textureId = flagImage.Image
@@ -422,33 +371,20 @@ local function autoGuess()
             wait(math.random(5, 20)/10)
         end
 
-        local textbox = nil
-        for _, gui in pairs(playerGui:GetChildren()) do
-            if gui:IsA("ScreenGui") and gui.Enabled then
-                for _, child in pairs(gui:GetDescendants()) do
-                    if child:IsA("TextBox") and child.Visible and child.Position.Y.Scale > 0.7 then
-                        textbox = child
-                        break
-                    end
-                end
-                if textbox then break end
-            end
-        end
-
-        if textbox then
-            textbox.Text = countryName
-            textbox:CaptureFocus()
+        if inputBox.Visible then
+            inputBox.Text = countryName
+            inputBox:CaptureFocus()
             wait(0.1)
             VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Return, false, game)
             wait(0.05)
             VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Return, false, game)
-            textbox.Text = ""
+            inputBox.Text = ""
             print("[Auto] Submetido: " .. countryName .. " | Flag ID: " .. textureId:sub(13))
         else
-            print("[Auto] TextBox não achado!")
+            print("[Auto] InputBox não visível ainda.")
         end
     else
-        print("[Auto] Flag desconhecida: " .. textureId:sub(13))
+        print("[Auto] Flag desconhecida: " .. textureId:sub(13) .. " - Adicione ao dict!")
     end
 end
 
@@ -457,4 +393,4 @@ RunService.Heartbeat:Connect(function()
     autoGuess()
 end)
 
-print("[Auto] GUI no canto direito. Clique Debug e me manda o console (F9)!")
+print("[Auto] Hard-coded rodando! GUI no canto direito. Clique Debug pra checar paths.")
